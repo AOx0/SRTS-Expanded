@@ -8,6 +8,7 @@ using Verse;
 using UnityEngine;
 using SPExtended;
 using Verse.Sound;
+using CombatExtended;
 
 namespace SRTS
 {
@@ -157,7 +158,7 @@ namespace SRTS
                     if(bombType == BombingType.carpet)
                         bombCells.RemoveAt(0);
                     int timerTickExplode = 20 + Rand.Range(0, 5); //Change later to allow release timer
-                    if (SRTSHelper.CEModLoaded)
+                    if (SRTSHelper.CEModLoaded && thing2.GetType().ToString().Contains("AmmoThing")) //AmmoDef class check to have SRTS handle the vanilla explosives
                         goto Block_CEPatched;
                     FallingBomb bombThing = new FallingBomb(thing2, thing2.TryGetComp<CompExplosive>(), this.Map, this.def.skyfaller.shadow);
                     bombThing.HitPoints = int.MaxValue;
@@ -173,16 +174,31 @@ namespace SRTS
                     continue;
 
                 Block_CEPatched:;
-                    ThingComp CEComp = (thing2 as ThingWithComps)?.AllComps.Find(x => x.GetType().Name == "CompExplosiveCE");
+                    // Replaced referencing the projectile trough the detonateProjectile property of the item's def with referencing trough AmmoSetDef. The reason is taht not all mortar shells had detonateProjectile. Don't ask how I came up with this.
+                    ProjectileCE_Explosive CEbombThing = (ProjectileCE_Explosive)ThingMaker.MakeThing((thing2.def as AmmoDef).AmmoSetDefs.Find(set => set.ammoTypes.Any()).ammoTypes.Find(link => link.ammo == (thing2.def as AmmoDef)).projectile, null);
+                    //ProjectileCE_Explosive bombCE = (ProjectileCE_Explosive)ThingMaker.MakeThing((AccessTools.Field(thing2.def.GetType(), "detonateProjectile").GetValue(thing2.def) as ThingDef), null);
+                    /*ThingComp CEComp = (thing2 as ThingWithComps)?.AllComps.Find(x => x.GetType().Name == "CompExplosiveCE");
                     FallingBombCE CEbombThing = new FallingBombCE(thing2, CEComp.props, CEComp, this.Map, this.def.skyfaller.shadow);
                     CEbombThing.HitPoints = int.MaxValue;
-                    CEbombThing.ticksRemaining = timerTickExplode;
+                    CEbombThing.ticksRemaining = timerTickExplode;*/
                     IntVec3 c2 = (from x in GenRadial.RadialCellsAround(bombPos, GetCurrentTargetingRadius(), true)
                                   where x.InBounds(this.Map)
                                   select x).RandomElementByWeight((IntVec3 x) => 1f - Mathf.Min(x.DistanceTo(this.Position) / GetCurrentTargetingRadius(), 1f) + 0.05f);
-                    CEbombThing.angle = this.angle + (SPTrig.LeftRightOfLine(this.DrawPosCell, this.Position, c2) * -10);
+                    /*CEbombThing.angle = this.angle + (SPTrig.LeftRightOfLine(this.DrawPosCell, this.Position, c2) * -10);
                     CEbombThing.speed = (float)SPExtra.Distance(this.DrawPosCell, c2) / CEbombThing.ticksRemaining;
-                    Thing CEt = GenSpawn.Spawn(CEbombThing, c2, this.Map);
+                    Thing CEt = GenSpawn.Spawn(CEbombThing, c2, this.Map);*/
+                    GenSpawn.Spawn(CEbombThing, this.DrawPosCell, this.Map);
+                    CEbombThing.canTargetSelf = false;
+                    CEbombThing.minCollisionDistance = 1;
+                    CEbombThing.intendedTarget = null;
+                    CEbombThing.AccuracyFactor = 1f;
+                    CEbombThing.Launch(this,
+                        this.DrawPosCell.ToIntVec2.ToVector2(),
+                        0f,
+                        this.angle + UnityEngine.Random.Range(-60f, 60f),
+                        5f,
+                        (float)SPExtra.Distance(this.DrawPosCell, c2),
+                        this);
                     //GenExplosion.NotifyNearbyPawnsOfDangerousExplosive(CEt, DamageDefOf., null); /*Is GenExplosion CE compatible?*/
                 }
             }
