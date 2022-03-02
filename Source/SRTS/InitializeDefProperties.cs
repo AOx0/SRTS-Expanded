@@ -24,12 +24,12 @@ namespace SRTS
         private static void ModCompatibilityInitialized()
         {
             List<ModMetaData> mods = ModLister.AllInstalledMods.ToList();
-            Log.Warning("[SRTS Expanded] Compatibility with Save our Ship 2 and Combat Extended are temporarily disabled at the moment. SoS2 compatibility will happen soon(ish), CE compatibility will not.");
+            Log.Warning("[SRTS Expanded (CE Fork)] Compatibility with Save our Ship 2 is disabled at the moment. SoS2 compatibility has to happen on the normal SRTS Expanded mod, CE compatibility is included within this fork.");
             foreach(ModMetaData mod in mods)
             {
                 if(ModLister.HasActiveModWithName(mod.Name) && mod.Name == "Combat Extended" && !SRTSHelper.CEModLoaded)
                 {
-                    Log.Message("[SRTS Expanded] Initializing Combat Extended patch for Bombing Runs.");
+                    Log.Message("[SRTS Expanded (CE Fork)] Initializing Combat Extended patch for Bombing Runs.");
                     if(!SRTSMod.mod.settings.CEPreviouslyInitialized)
                         SRTSMod.mod.ResetBombList();
                     SRTSMod.mod.settings.CEPreviouslyInitialized = true;

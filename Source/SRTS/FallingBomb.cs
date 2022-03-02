@@ -19,7 +19,7 @@ namespace SRTS
         public FallingBomb(Thing reference, CompExplosive comp, Map map, string texPathShadow)
         {
             this.def = reference.def;
-            this.projectile = def.projectileWhenLoaded.projectile;
+            this.projectile = def.projectileWhenLoaded?.projectile;
             this.thingIDNumber = reference.thingIDNumber;
             this.map = map;
             this.factionInt = reference.Faction;
